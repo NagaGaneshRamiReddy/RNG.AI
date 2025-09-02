@@ -6,17 +6,37 @@
     <title>Project Workspace</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #0b0b0b; color: #e5e7eb; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #0b0b0b; 
+            color: #e5e7eb; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+        }
         
-        /* Header Styles from index.html */
-        .site-header { position: sticky; top: 0; z-index: 50; background: #000000; border-bottom: 1px solid #151515; padding: 10px 16px; }
-        .header-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .auth-btn { background: transparent; color: #e5e7eb; border: 1px solid #2d2d2d; border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: background 150ms ease; }
-        .auth-btn:hover { background: #111827; }
-        .logo-img { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); transition: transform 300ms ease; }
-        .logo-img:hover { transform: rotate(8deg) scale(1.05); }
+        .site-header { 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+            background: #000000; 
+            border-bottom: 1px solid #151515; 
+            padding: 10px 16px; 
+        }
+        .header-inner { 
+            max-width: 1280px; 
+            margin: 0 auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 12px; 
+        }
+        .header-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
         .brand1 {
             font-size: 2.5rem;
             font-weight: 200;
@@ -27,116 +47,17 @@
             -webkit-text-fill-color: transparent;
             display: inline-block;
         }
-        
-        /* Mobile Responsive Header */
-        @media (max-width: 768px) {
-            .site-header { padding: 8px 12px; }
-            .header-inner { flex-direction: column; gap: 8px; align-items: center; }
-            .header-left { flex-direction: column; align-items: center; gap: 8px; }
-            .brand1 { font-size: 2rem; }
-            .logo-img { width: 40px; height: 40px; }
+        .logo-img { 
+            width: 28px; 
+            height: 28px; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); 
+            transition: transform 300ms ease; 
         }
-        @media (max-width: 480px) {
-            .brand1 { font-size: 1.8rem; }
+        .logo-img:hover { 
+            transform: rotate(8deg) scale(1.05); 
         }
-    </style>
-</head>
-<body>
-    <header class="site-header">
-        <div class="header-inner">
-            <div class="header-left">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeI5mGEaJdwKOi0KUsyChbuCfd-HLYy0gUdQ&s" alt="RNG.AI logo" class="logo-img">
-                <div class="brand1">RNG.AI</div>
-            </div>
-
-        </div>
-    </header>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="meeting-section">
-            <h2>Group Meeting & Collaboration</h2>
-            
-            <!-- Create Meeting -->
-            <div class="meeting-card">
-                <div class="card-header">
-                    <i class="icon">📅</i>
-                    <h3>Create Meeting</h3>
-                </div>
-                <form id="createMeetingForm" class="meeting-form">
-                    <div class="form-group">
-                        <label><i class="icon">👤</i> Your Name</label>
-                        <input type="text" id="creatorName" required placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="icon">🚀</i> Project Type</label>
-                        <input type="text" id="projectType" required placeholder="e.g., Web App, Mobile App, API">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="icon">👥</i> Team Size</label>
-                        <input type="number" id="teamSize" min="2" max="20" value="4" required>
-                    </div>
-                    <button type="submit" class="btn-create">
-                        <i class="icon">✨</i> Create Meeting
-                    </button>
-                </form>
-                
-                <div id="meetingCreated" class="meeting-info" style="display: none;">
-                    <h4><i class="icon">✅</i> Meeting Created Successfully!</h4>
-                    <div class="info-item">
-                        <label><i class="icon">🔗</i> Meeting Link:</label>
-                        <div class="meeting-link" id="meetingLink"></div>
-                    </div>
-                    <div class="info-item">
-                        <label><i class="icon">🔢</i> Meeting Code:</label>
-                        <div class="meeting-code" id="meetingCode"></div>
-                    </div>
-                    <button class="btn-copy" onclick="copyMeetingInfo()">
-                        <i class="icon">📋</i> Copy Info
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Join Meeting -->
-            <div class="meeting-card">
-                <div class="card-header">
-                    <i class="icon">🚪</i>
-                    <h3>Join Meeting</h3>
-                </div>
-                <form id="joinMeetingForm" class="meeting-form">
-                    <div class="form-group">
-                        <label><i class="icon">👤</i> Your Name</label>
-                        <input type="text" id="joinerName" required placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="icon">🔢</i> Meeting Code</label>
-                        <input type="text" id="joinCode" required placeholder="Enter 6-digit code" maxlength="6">
-                    </div>
-                    <button type="submit" class="btn-join">
-                        <i class="icon">🚀</i> Join Meeting
-                    </button>
-                </form>
-            </div>
-        </div>
         
-        <!-- Chat Section -->
-        <div class="chat-section">
-            <div class="chat-header">
-                <i class="icon">💬</i>
-                <h3>Team Chat</h3>
-                <span id="participantCount" class="participant-count">0 participants</span>
-            </div>
-            <div id="chatMessages" class="chat-messages"></div>
-            <div class="chat-input-container">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
-                <button class="btn-send" onclick="sendChatMessage()">
-                    <i class="icon">📤</i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <style>
         .main-content {
             max-width: 1200px;
             margin: 20px auto;
@@ -400,7 +321,6 @@
             background: #1d4ed8;
         }
         
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             .meeting-section {
                 grid-template-columns: 1fr;
@@ -419,8 +339,101 @@
             .chat-messages {
                 height: 250px;
             }
+            
+            .brand1 { font-size: 2rem; }
+            .logo-img { width: 40px; height: 40px; }
         }
     </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeI5mGEaJdwKOi0KUsyChbuCfd-HLYy0gUdQ&s" alt="RNG.AI logo" class="logo-img">
+                <div class="brand1">RNG.AI</div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-content">
+        <div class="meeting-section">
+            <h2>Group Meeting & Collaboration</h2>
+            
+            <div class="meeting-card">
+                <div class="card-header">
+                    <i class="icon">📅</i>
+                    <h3>Create Meeting</h3>
+                </div>
+                <form id="createMeetingForm" class="meeting-form">
+                    <div class="form-group">
+                        <label><i class="icon">👤</i> Your Name</label>
+                        <input type="text" id="creatorName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="icon">🚀</i> Project Type</label>
+                        <input type="text" id="projectType" required placeholder="e.g., Web App, Mobile App, API">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="icon">👥</i> Team Size</label>
+                        <input type="number" id="teamSize" min="2" max="20" value="4" required>
+                    </div>
+                    <button type="submit" class="btn-create">
+                        <i class="icon">✨</i> Create Meeting
+                    </button>
+                </form>
+                
+                <div id="meetingCreated" class="meeting-info" style="display: none;">
+                    <h4><i class="icon">✅</i> Meeting Created Successfully!</h4>
+                    <div class="info-item">
+                        <label><i class="icon">🔗</i> Meeting Link:</label>
+                        <div class="meeting-link" id="meetingLink"></div>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="icon">🔢</i> Meeting Code:</label>
+                        <div class="meeting-code" id="meetingCode"></div>
+                    </div>
+                    <button class="btn-copy" onclick="copyMeetingInfo()">
+                        <i class="icon">📋</i> Copy Info
+                    </button>
+                </div>
+            </div>
+            
+            <div class="meeting-card">
+                <div class="card-header">
+                    <i class="icon">🚪</i>
+                    <h3>Join Meeting</h3>
+                </div>
+                <form id="joinMeetingForm" class="meeting-form">
+                    <div class="form-group">
+                        <label><i class="icon">👤</i> Your Name</label>
+                        <input type="text" id="joinerName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="icon">🔢</i> Meeting Code</label>
+                        <input type="text" id="joinCode" required placeholder="Enter 6-digit code" maxlength="6">
+                    </div>
+                    <button type="submit" class="btn-join">
+                        <i class="icon">🚀</i> Join Meeting
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="chat-section">
+            <div class="chat-header">
+                <i class="icon">💬</i>
+                <h3>Team Chat</h3>
+                <span id="participantCount" class="participant-count">0 participants</span>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <i class="icon">📤</i>
+                </button>
+            </div>
+        </div>
+    </div>
     
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -430,7 +443,6 @@
         let meetingCode = '';
         let participants = [];
         
-        // Initialize socket connection
         function initSocket() {
             socket = io();
             
@@ -443,13 +455,11 @@
                 meetingCode = data.meeting.code;
                 participants = [data.meeting.creator];
                 
-                // Display meeting info
                 document.getElementById('meetingLink').textContent = data.meetingLink;
                 document.getElementById('meetingCode').textContent = meetingCode;
                 document.getElementById('meetingCreated').style.display = 'block';
                 document.getElementById('createMeetingForm').style.display = 'none';
                 
-                // Add to chat
                 addChatMessage('System', `🎉 ${data.meeting.creator} created a meeting for ${data.meeting.projectType} project (Team size: ${data.meeting.teamSize})`);
                 addChatMessage('System', `🔢 Meeting code: ${meetingCode}`);
                 
@@ -474,28 +484,23 @@
             });
         }
         
-        // Create Meeting
         document.getElementById('createMeetingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const creatorName = document.getElementById('creatorName').value;
             const projectType = document.getElementById('projectType').value;
             const teamSize = document.getElementById('teamSize').value;
             
-            // Create meeting via socket
             socket.emit('create-meeting', { creatorName, projectType, teamSize });
         });
         
-        // Join Meeting
         document.getElementById('joinMeetingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const joinerName = document.getElementById('joinerName').value;
             const code = document.getElementById('joinCode').value;
             
-            // Join meeting via socket
             socket.emit('join-meeting', { meetingCode: code, userName: joinerName });
         });
         
-        // Chat functionality
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
@@ -503,7 +508,6 @@
             
             const sender = isHost ? 'Host' : 'Participant';
             
-            // Send message via socket
             socket.emit('send-message', {
                 meetingCode: currentMeeting.code,
                 message,
@@ -525,7 +529,6 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
-        // Utility functions
         function copyMeetingInfo() {
             const link = document.getElementById('meetingLink').textContent;
             const code = document.getElementById('meetingCode').textContent;
@@ -538,15 +541,13 @@
             document.getElementById('participantCount').textContent = `${participants.length} participants`;
         }
         
-        // Enter key for chat
         document.getElementById('chatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendChatMessage();
             }
         });
         
-        // Initialize socket when page loads
         window.addEventListener('load', initSocket);
     </script>
-    </body>
-    </html>
+</body>
+</html>
