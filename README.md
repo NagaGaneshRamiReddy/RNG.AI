@@ -1,2 +1,11 @@
-# RNG.AI
-RNG.AI is a text and code generation project that uses Google API keys. The frontend is built with HTML, CSS, and JavaScript, integrating API calls for dynamic AI-powered responses.
+RNG.AI is an AI-powered random number generation tool that leverages advanced algorithms to generate secure, unbiased, and reproducible random numbers for various applications, from simulations to gaming and cryptography.
+
+Features
+
+AI-enhanced randomness: Uses machine learning techniques to improve unpredictability.
+
+Multiple number formats: Supports integers, floats, and customizable ranges.
+
+Reproducible results: Seed-based generation for consistent outputs.
+
+Easy integration: Provides APIs and library support for quick implementation.
