@@ -18,6 +18,103 @@
 
         .app { width: 100%; max-width: 1280px; margin: 12px auto; display: flex; gap: 12px; align-items: stretch; flex: 1; min-height: 0; }
         .sidebar { width: 280px; background: #000000; border: 1px solid #111827; border-radius: 10px; padding: 16px; color: #cbd5e1; display: flex; flex-direction: column; gap: 12px; animation: slideInLeft 400ms ease-out both; }
+        
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .app { 
+                flex-direction: column; 
+                gap: 8px; 
+                margin: 8px; 
+            }
+            .sidebar { 
+                width: 100%; 
+                order: 2; 
+                padding: 12px; 
+            }
+            .container { 
+                order: 1; 
+                padding: 12px; 
+                min-height: auto; 
+            }
+            .site-header { 
+                padding: 8px 12px; 
+            }
+            .header-inner { 
+                flex-direction: column; 
+                gap: 8px; 
+                align-items: center; 
+            }
+            .header-left { 
+                flex-direction: column; 
+                align-items: center; 
+                gap: 8px; 
+            }
+            .brand1 { 
+                font-size: 2rem; 
+            }
+            .logo-img { 
+                width: 40px; 
+                height: 40px; 
+            }
+            .search-box { 
+                flex-direction: column; 
+                gap: 8px; 
+            }
+            .search-input, .search-btn { 
+                width: 100%; 
+                padding: 12px; 
+                font-size: 16px; 
+            }
+            .chat-container { 
+                min-height: 300px; 
+                padding: 0.8rem; 
+            }
+            .message { 
+                max-width: 95%; 
+                padding: 0.6rem; 
+                font-size: 14px; 
+            }
+            .code-editor-container { 
+                max-width: 100%; 
+            }
+            .cm-s-neo.CodeMirror, .cm-s-darcula.CodeMirror { 
+                height: 200px; 
+                font-size: 12px; 
+            }
+            .message-toolbar { 
+                position: relative; 
+                top: auto; 
+                right: auto; 
+                margin-bottom: 8px; 
+            }
+            .icon-btn { 
+                padding: 6px 8px; 
+                font-size: 11px; 
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .app { 
+                margin: 4px; 
+                gap: 6px; 
+            }
+            .sidebar, .container { 
+                padding: 8px; 
+            }
+            .brand1 { 
+                font-size: 1.8rem; 
+            }
+            .search-input, .search-btn { 
+                padding: 10px; 
+            }
+            .chat-container { 
+                min-height: 250px; 
+            }
+            .message { 
+                max-width: 98%; 
+                padding: 0.5rem; 
+            }
+        }
         .sidebar-header { display: flex; align-items: center; gap: 10px; }
         .logo-img { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); transition: transform 300ms ease; }
         .logo-img:hover { transform: rotate(8deg) scale(1.05); }

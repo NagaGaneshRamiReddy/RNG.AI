@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join Meeting - RNG.AI</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #0b0b0b; 
+            color: #e5e7eb; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+        }
+        
+        .header { 
+            padding: 20px; 
+            text-align: center; 
+            background: #000000; 
+            border-bottom: 1px solid #151515; 
+        }
+        
+        .brand { 
+            font-size: 2.5rem;
+            font-weight: 200;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #1dd1a1, #54a0ff, #5f27cd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .join-container {
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .join-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .join-header h1 {
+            margin: 0 0 10px 0;
+            color: #e5e7eb;
+            font-size: 1.8rem;
+        }
+        
+        .join-header p {
+            color: #9ca3af;
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: #0b1220;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .btn-join {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-join:hover {
+            background: linear-gradient(135deg, #047857, #065f46);
+            transform: translateY(-2px);
+        }
+        
+        .btn-join:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .meeting-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .meeting-info h3 {
+            margin: 0 0 15px 0;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-item label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .meeting-details {
+            background: #1f2937;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 12px;
+            color: #e5e7eb;
+            font-family: monospace;
+        }
+        
+        .participants-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .participants-list li {
+            padding: 8px 12px;
+            background: #1f2937;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .participant-avatar {
+            width: 32px;
+            height: 32px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .chat-section {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #1f2937;
+            border-radius: 6px;
+            border-left: 3px solid #2563eb;
+        }
+        
+        .chat-sender {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .chat-content {
+            color: #e5e7eb;
+            line-height: 1.4;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .btn-send {
+            background: #2563eb;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .btn-send:hover {
+            background: #1d4ed8;
+        }
+        
+        .error-message {
+            background: #dc2626;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #059669;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .join-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .brand {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="brand">RNG.AI</div>
+        <div class="subtitle">Join Group Meeting</div>
+    </div>
+    
+    <div class="main-content">
+        <div class="join-container">
+            <div class="join-header">
+                <h1>🚪 Join Meeting</h1>
+                <p>Enter the meeting code to join your team collaboration</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            
+            <form id="joinForm">
+                <div class="form-group">
+                    <label for="userName">👤 Your Name</label>
+                    <input type="text" id="userName" required placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="meetingCode">🔢 Meeting Code</label>
+                    <input type="text" id="meetingCode" required placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                </div>
+                
+                <button type="submit" class="btn-join" id="joinBtn">
+                    🚀 Join Meeting
+                </button>
+            </form>
+            
+            <div class="meeting-info" id="meetingInfo">
+                <h3>✅ Successfully Joined!</h3>
+                <div class="info-item">
+                    <label>📅 Project Type:</label>
+                    <div class="meeting-details" id="projectType"></div>
+                </div>
+                <div class="info-item">
+                    <label>👥 Participants:</label>
+                    <ul class="participants-list" id="participantsList"></ul>
+                </div>
+                
+                <div class="chat-section" id="chatSection">
+                    <h4>💬 Team Chat</h4>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+                        <button class="btn-send" onclick="sendMessage()">📤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+        let currentMeeting = null;
+        let currentUserName = '';
+        
+        // Initialize socket connection
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+            
+            socket.on('join-success', (data) => {
+                currentMeeting = data.meeting;
+                showMeetingInfo(data.meeting, data.participants);
+                showSuccess('Successfully joined the meeting!');
+                document.getElementById('joinForm').style.display = 'none';
+                document.getElementById('meetingInfo').style.display = 'block';
+                document.getElementById('chatSection').style.display = 'block';
+            });
+            
+            socket.on('join-error', (error) => {
+                showError(error);
+            });
+            
+            socket.on('participant-joined', (data) => {
+                updateParticipantsList(data.participants);
+                addChatMessage('System', `🚪 ${data.userName} joined the meeting`);
+            });
+            
+            socket.on('participant-left', (data) => {
+                updateParticipantsList(data.participants);
+                addChatMessage('System', `👋 ${data.userName} left the meeting`);
+            });
+            
+            socket.on('new-message', (message) => {
+                addChatMessage(message.sender, message.message);
+            });
+        }
+        
+        // Handle form submission
+        document.getElementById('joinForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userName = document.getElementById('userName').value.trim();
+            const meetingCode = document.getElementById('meetingCode').value.trim();
+            
+            if (!userName || !meetingCode) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            if (meetingCode.length !== 6 || !/^\d+$/.test(meetingCode)) {
+                showError('Please enter a valid 6-digit meeting code');
+                return;
+            }
+            
+            currentUserName = userName;
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('joinBtn').textContent = '🔄 Joining...';
+            
+            // Join meeting via socket
+            socket.emit('join-meeting', { meetingCode, userName });
+        });
+        
+        // Show meeting information
+        function showMeetingInfo(meeting, participants) {
+            document.getElementById('projectType').textContent = meeting.projectType;
+            updateParticipantsList(participants);
+        }
+        
+        // Update participants list
+        function updateParticipantsList(participants) {
+            const list = document.getElementById('participantsList');
+            list.innerHTML = '';
+            
+            participants.forEach(participant => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="participant-avatar">${participant.charAt(0).toUpperCase()}</div>
+                    <span>${participant}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+        
+        // Send chat message
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || !currentMeeting) return;
+            
+            socket.emit('send-message', {
+                meetingCode: currentMeeting.code,
+                message,
+                sender: currentUserName
+            });
+            
+            input.value = '';
+        }
+        
+        // Add chat message to display
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.innerHTML = `
+                <div class="chat-sender">${sender}</div>
+                <div class="chat-content">${message}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            document.getElementById('joinBtn').disabled = false;
+            document.getElementById('joinBtn').textContent = '🚀 Join Meeting';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Handle Enter key in chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Auto-fill meeting code from URL if present
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                document.getElementById('meetingCode').value = code;
+            }
+            
+            initSocket();
+        });
+    </script>
+</body>
+</html>

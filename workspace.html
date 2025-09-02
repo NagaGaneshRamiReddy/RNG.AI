@@ -422,11 +422,57 @@
         }
     </style>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        let socket;
         let currentMeeting = null;
         let isHost = false;
         let meetingCode = '';
         let participants = [];
+        
+        // Initialize socket connection
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+            
+            socket.on('meeting-created', (data) => {
+                currentMeeting = data.meeting;
+                meetingCode = data.meeting.code;
+                participants = [data.meeting.creator];
+                
+                // Display meeting info
+                document.getElementById('meetingLink').textContent = data.meetingLink;
+                document.getElementById('meetingCode').textContent = meetingCode;
+                document.getElementById('meetingCreated').style.display = 'block';
+                document.getElementById('createMeetingForm').style.display = 'none';
+                
+                // Add to chat
+                addChatMessage('System', `🎉 ${data.meeting.creator} created a meeting for ${data.meeting.projectType} project (Team size: ${data.meeting.teamSize})`);
+                addChatMessage('System', `🔢 Meeting code: ${meetingCode}`);
+                
+                isHost = true;
+                updateParticipantCount();
+            });
+            
+            socket.on('participant-joined', (data) => {
+                participants = data.participants;
+                addChatMessage('System', `🚪 ${data.userName} joined the meeting`);
+                updateParticipantCount();
+            });
+            
+            socket.on('participant-left', (data) => {
+                participants = data.participants;
+                addChatMessage('System', `👋 ${data.userName} left the meeting`);
+                updateParticipantCount();
+            });
+            
+            socket.on('new-message', (message) => {
+                addChatMessage(message.sender, message.message);
+            });
+        }
         
         // Create Meeting
         document.getElementById('createMeetingForm').addEventListener('submit', function(e) {
@@ -435,34 +481,8 @@
             const projectType = document.getElementById('projectType').value;
             const teamSize = document.getElementById('teamSize').value;
             
-            // Generate meeting code and link
-            meetingCode = generateMeetingCode();
-            const meetingLink = generateMeetingLink(meetingCode);
-            
-            // Store meeting info
-            currentMeeting = {
-                code: meetingCode,
-                creator: creatorName,
-                projectType: projectType,
-                teamSize: parseInt(teamSize),
-                participants: [creatorName],
-                createdAt: new Date().toISOString()
-            };
-            
-            participants = [creatorName];
-            
-            // Display meeting info
-            document.getElementById('meetingLink').textContent = meetingLink;
-            document.getElementById('meetingCode').textContent = meetingCode;
-            document.getElementById('meetingCreated').style.display = 'block';
-            document.getElementById('createMeetingForm').style.display = 'none';
-            
-            // Add to chat
-            addChatMessage('System', `🎉 ${creatorName} created a meeting for ${projectType} project (Team size: ${teamSize})`);
-            addChatMessage('System', `🔢 Meeting code: ${meetingCode}`);
-            
-            isHost = true;
-            updateParticipantCount();
+            // Create meeting via socket
+            socket.emit('create-meeting', { creatorName, projectType, teamSize });
         });
         
         // Join Meeting
@@ -471,32 +491,25 @@
             const joinerName = document.getElementById('joinerName').value;
             const code = document.getElementById('joinCode').value;
             
-            if (code === meetingCode && currentMeeting) {
-                if (currentMeeting.participants.length >= currentMeeting.teamSize) {
-                    alert('Meeting is full!');
-                    return;
-                }
-                
-                currentMeeting.participants.push(joinerName);
-                participants.push(joinerName);
-                addChatMessage('System', `🚪 ${joinerName} joined the meeting`);
-                
-                // Hide join form
-                document.getElementById('joinMeetingForm').style.display = 'none';
-                updateParticipantCount();
-            } else {
-                alert('Invalid meeting code!');
-            }
+            // Join meeting via socket
+            socket.emit('join-meeting', { meetingCode: code, userName: joinerName });
         });
         
         // Chat functionality
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
-            if (!message) return;
+            if (!message || !currentMeeting) return;
             
             const sender = isHost ? 'Host' : 'Participant';
-            addChatMessage(sender, message);
+            
+            // Send message via socket
+            socket.emit('send-message', {
+                meetingCode: currentMeeting.code,
+                message,
+                sender: sender === 'Host' ? currentMeeting.creator : 'Participant'
+            });
+            
             input.value = '';
         }
         
@@ -513,14 +526,6 @@
         }
         
         // Utility functions
-        function generateMeetingCode() {
-            return Math.random().toString().substr(2, 6);
-        }
-        
-        function generateMeetingLink(meetingCode) {
-            return `${window.location.origin}${window.location.pathname}?meeting=${meetingCode}`;
-        }
-        
         function copyMeetingInfo() {
             const link = document.getElementById('meetingLink').textContent;
             const code = document.getElementById('meetingCode').textContent;
@@ -538,7 +543,10 @@
             if (e.key === 'Enter') {
                 sendChatMessage();
             }
-            });
-        </script>
+        });
+        
+        // Initialize socket when page loads
+        window.addEventListener('load', initSocket);
+    </script>
     </body>
     </html>
