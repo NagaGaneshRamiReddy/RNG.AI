@@ -7,292 +7,538 @@
     <style>
         * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #0b0b0b; color: #e5e7eb; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
-        .header { padding: 10px 16px; background: #0b0b0b; border-bottom: 1px solid #151515; display: flex; align-items: center; justify-content: space-between; }
-        .title { font-weight: 700; }
-        .main { flex: 1; display: grid; grid-template-columns: 260px 1fr 380px; gap: 10px; padding: 10px; min-height: 0; }
-        .panel { background: #0f172a; border: 1px solid #111827; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
-        .panel-header { padding: 10px 12px; border-bottom: 1px solid #111827; font-weight: 600; color: #e5e7eb; }
-        .panel-body { padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-
-        /* File tree */
-        .tree { padding: 10px; overflow-y: auto; flex: 1; }
-        .tree-item { padding: 6px 8px; border: 1px solid #1f2937; border-radius: 8px; margin-bottom: 6px; cursor: pointer; background: #0b1220; color: #e5e7eb; }
-        .tree-item.active { border-color: #2563eb; background: #0c1a34; }
-        .tree-actions { display: flex; gap: 6px; padding: 10px; border-top: 1px solid #111827; }
-        .btn { background: #1f2937; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
-        .btn:hover { background: #243144; }
-        .btn.primary { background: #2563eb; border-color: #1f3f8a; color: #fff; }
-        .btn.primary:hover { background: #1d4ed8; }
-
-        /* Editor */
-        .editor-wrap { position: relative; display: flex; flex-direction: column; min-height: 0; }
-        .editor-toolbar { padding: 8px; border-bottom: 1px solid #111827; display: flex; gap: 8px; }
-        .filename { color: #cbd5e1; font-size: 0.9rem; }
-        .cm-s-neo.CodeMirror, .cm-s-darcula.CodeMirror { height: calc(100vh - 160px); }
-
-        /* Preview */
-        .preview-iframe { width: 100%; height: calc(100vh - 120px); border: 0; background: white; }
-
-        /* Prompt */
-        .prompt-area { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .prompt-input { width: 100%; height: 180px; background: #0b1220; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 10px; resize: vertical; }
-        .prompt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .status { color: #9ca3af; padding: 6px 10px; }
+        
+        /* Header Styles from index.html */
+        .site-header { position: sticky; top: 0; z-index: 50; background: #000000; border-bottom: 1px solid #151515; padding: 10px 16px; }
+        .header-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .auth-btn { background: transparent; color: #e5e7eb; border: 1px solid #2d2d2d; border-radius: 8px; padding: 8px 12px; cursor: pointer; transition: background 150ms ease; }
+        .auth-btn:hover { background: #111827; }
+        .logo-img { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); transition: transform 300ms ease; }
+        .logo-img:hover { transform: rotate(8deg) scale(1.05); }
+        .brand1 {
+            font-size: 2.5rem;
+            font-weight: 200;
+            text-transform: uppercase;
+            text-align: center;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #1dd1a1, #54a0ff, #5f27cd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        /* Mobile Responsive Header */
+        @media (max-width: 768px) {
+            .site-header { padding: 8px 12px; }
+            .header-inner { flex-direction: column; gap: 8px; align-items: center; }
+            .header-left { flex-direction: column; align-items: center; gap: 8px; }
+            .brand1 { font-size: 2rem; }
+            .logo-img { width: 40px; height: 40px; }
+        }
+        @media (max-width: 480px) {
+            .brand1 { font-size: 1.8rem; }
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="title">Project Workspace</div>
-        <div>
-            <button class="btn" onclick="toggleTheme()">Toggle Editor Theme</button>
-        </div>
-    </div>
-    <div class="main">
-        <!-- Files -->
-        <div class="panel">
-            <div class="panel-header">Files</div>
-            <div class="panel-body">
-                <div id="fileTree" class="tree"></div>
-                <div class="tree-actions">
-                    <button class="btn" onclick="newFile()">New File</button>
-                    <button class="btn" onclick="deleteFile()">Delete</button>
-                    <button class="btn" onclick="saveCurrent()">Save</button>
-                </div>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeI5mGEaJdwKOi0KUsyChbuCfd-HLYy0gUdQ&s" alt="RNG.AI logo" class="logo-img">
+                <div class="brand1">RNG.AI</div>
             </div>
-        </div>
 
-        <!-- Editor + Preview -->
-        <div class="panel">
-            <div class="panel-header">Editor & Preview</div>
-            <div class="panel-body editor-wrap">
-                <div class="editor-toolbar">
-                    <span class="filename" id="currentFilename">No file</span>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="meeting-section">
+            <h2>Group Meeting & Collaboration</h2>
+            
+            <!-- Create Meeting -->
+            <div class="meeting-card">
+                <div class="card-header">
+                    <i class="icon">📅</i>
+                    <h3>Create Meeting</h3>
                 </div>
-                <textarea id="editor"></textarea>
-                <iframe id="preview" class="preview-iframe"></iframe>
-            </div>
-        </div>
-
-        <!-- Prompt Build -->
-        <div class="panel">
-            <div class="panel-header">Build from Prompt</div>
-            <div class="panel-body">
-                <div class="prompt-area">
-                    <textarea id="promptInput" class="prompt-input" placeholder="Describe the project you want to build..."></textarea>
-                    <div class="prompt-actions">
-                        <button class="btn primary" onclick="buildFromPrompt()">Build</button>
-                        <button class="btn" onclick="refreshPreview()">View Project</button>
-                        <button class="btn" onclick="downloadZip()">Download</button>
+                <form id="createMeetingForm" class="meeting-form">
+                    <div class="form-group">
+                        <label><i class="icon">👤</i> Your Name</label>
+                        <input type="text" id="creatorName" required placeholder="Enter your name">
                     </div>
-                    <div id="status" class="status"></div>
+                    <div class="form-group">
+                        <label><i class="icon">🚀</i> Project Type</label>
+                        <input type="text" id="projectType" required placeholder="e.g., Web App, Mobile App, API">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="icon">👥</i> Team Size</label>
+                        <input type="number" id="teamSize" min="2" max="20" value="4" required>
+                    </div>
+                    <button type="submit" class="btn-create">
+                        <i class="icon">✨</i> Create Meeting
+                    </button>
+                </form>
+                
+                <div id="meetingCreated" class="meeting-info" style="display: none;">
+                    <h4><i class="icon">✅</i> Meeting Created Successfully!</h4>
+                    <div class="info-item">
+                        <label><i class="icon">🔗</i> Meeting Link:</label>
+                        <div class="meeting-link" id="meetingLink"></div>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="icon">🔢</i> Meeting Code:</label>
+                        <div class="meeting-code" id="meetingCode"></div>
+                    </div>
+                    <button class="btn-copy" onclick="copyMeetingInfo()">
+                        <i class="icon">📋</i> Copy Info
+                    </button>
                 </div>
+            </div>
+            
+            <!-- Join Meeting -->
+            <div class="meeting-card">
+                <div class="card-header">
+                    <i class="icon">🚪</i>
+                    <h3>Join Meeting</h3>
+                </div>
+                <form id="joinMeetingForm" class="meeting-form">
+                    <div class="form-group">
+                        <label><i class="icon">👤</i> Your Name</label>
+                        <input type="text" id="joinerName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="icon">🔢</i> Meeting Code</label>
+                        <input type="text" id="joinCode" required placeholder="Enter 6-digit code" maxlength="6">
+                    </div>
+                    <button type="submit" class="btn-join">
+                        <i class="icon">🚀</i> Join Meeting
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <div class="chat-header">
+                <i class="icon">💬</i>
+                <h3>Team Chat</h3>
+                <span id="participantCount" class="participant-count">0 participants</span>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+                <button class="btn-send" onclick="sendChatMessage()">
+                    <i class="icon">📤</i>
+                </button>
             </div>
         </div>
     </div>
-
+    
+    <style>
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .meeting-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .meeting-card {
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            color: #e5e7eb;
+            font-size: 1.2rem;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+            display: inline-block;
+        }
+        
+        .meeting-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            padding: 10px 12px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn-create, .btn-join, .btn-copy, .btn-send {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-create {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+        }
+        
+        .btn-create:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+        }
+        
+        .btn-join {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+        
+        .btn-join:hover {
+            background: linear-gradient(135deg, #047857, #065f46);
+            transform: translateY(-1px);
+        }
+        
+        .btn-copy {
+            background: #6b7280;
+            color: white;
+            margin-top: 15px;
+        }
+        
+        .btn-copy:hover {
+            background: #4b5563;
+        }
+        
+        .meeting-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        
+        .meeting-info h4 {
+            margin: 0 0 15px 0;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-item {
+            margin-bottom: 12px;
+        }
+        
+        .info-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .meeting-link, .meeting-code {
+            background: #1f2937;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: monospace;
+            color: #e5e7eb;
+            word-break: break-all;
+        }
+        
+        .meeting-code {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+        
+        .chat-section {
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            color: #e5e7eb;
+            font-size: 1.2rem;
+        }
+        
+        .participant-count {
+            margin-left: auto;
+            background: #374151;
+            color: #9ca3af;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .chat-message {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #1f2937;
+            border-radius: 8px;
+            border-left: 3px solid #2563eb;
+        }
+        
+        .chat-sender {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .chat-content {
+            color: #e5e7eb;
+            line-height: 1.4;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: #0b1220;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .btn-send {
+            background: #2563eb;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .btn-send:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .meeting-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .main-content {
+                padding: 0 15px;
+                margin: 15px auto;
+            }
+            
+            .meeting-card, .chat-section {
+                padding: 15px;
+            }
+            
+            .chat-messages {
+                height: 250px;
+            }
+        }
+    </style>
+    
     <script>
-        const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_API_KEY";
-
-        const fileTree = document.getElementById('fileTree');
-        const currentFilenameEl = document.getElementById('currentFilename');
-        const preview = document.getElementById('preview');
-        const statusEl = document.getElementById('status');
-
-        let vfs = {
-            'index.html': '<!doctype html>\n<html><head><meta charset="utf-8"><title>App</title></head><body><h1>Hello</h1></body></html>'
-        };
-        let currentFile = 'index.html';
-        let darkTheme = false;
-
-        const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-            mode: guessMode(currentFile),
-            theme: 'neo',
-            lineNumbers: true,
-            indentUnit: 2,
-            tabSize: 2
+        let currentMeeting = null;
+        let isHost = false;
+        let meetingCode = '';
+        let participants = [];
+        
+        // Create Meeting
+        document.getElementById('createMeetingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const creatorName = document.getElementById('creatorName').value;
+            const projectType = document.getElementById('projectType').value;
+            const teamSize = document.getElementById('teamSize').value;
+            
+            // Generate meeting code and link
+            meetingCode = generateMeetingCode();
+            const meetingLink = generateMeetingLink(meetingCode);
+            
+            // Store meeting info
+            currentMeeting = {
+                code: meetingCode,
+                creator: creatorName,
+                projectType: projectType,
+                teamSize: parseInt(teamSize),
+                participants: [creatorName],
+                createdAt: new Date().toISOString()
+            };
+            
+            participants = [creatorName];
+            
+            // Display meeting info
+            document.getElementById('meetingLink').textContent = meetingLink;
+            document.getElementById('meetingCode').textContent = meetingCode;
+            document.getElementById('meetingCreated').style.display = 'block';
+            document.getElementById('createMeetingForm').style.display = 'none';
+            
+            // Add to chat
+            addChatMessage('System', `🎉 ${creatorName} created a meeting for ${projectType} project (Team size: ${teamSize})`);
+            addChatMessage('System', `🔢 Meeting code: ${meetingCode}`);
+            
+            isHost = true;
+            updateParticipantCount();
         });
-
-        editor.on('change', () => {
-            if (currentFile) vfs[currentFile] = editor.getValue();
+        
+        // Join Meeting
+        document.getElementById('joinMeetingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const joinerName = document.getElementById('joinerName').value;
+            const code = document.getElementById('joinCode').value;
+            
+            if (code === meetingCode && currentMeeting) {
+                if (currentMeeting.participants.length >= currentMeeting.teamSize) {
+                    alert('Meeting is full!');
+                    return;
+                }
+                
+                currentMeeting.participants.push(joinerName);
+                participants.push(joinerName);
+                addChatMessage('System', `🚪 ${joinerName} joined the meeting`);
+                
+                // Hide join form
+                document.getElementById('joinMeetingForm').style.display = 'none';
+                updateParticipantCount();
+            } else {
+                alert('Invalid meeting code!');
+            }
         });
-
-        function toggleTheme() {
-            darkTheme = !darkTheme;
-            editor.setOption('theme', darkTheme ? 'darcula' : 'neo');
+        
+        // Chat functionality
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const sender = isHost ? 'Host' : 'Participant';
+            addChatMessage(sender, message);
+            input.value = '';
         }
-
-        function guessMode(name) {
-            const lower = (name || '').toLowerCase();
-            if (lower.endsWith('.html') || lower.endsWith('.xml')) return 'xml';
-            if (lower.endsWith('.css')) return 'css';
-            if (lower.endsWith('.js') || lower.endsWith('.ts')) return 'javascript';
-            return 'javascript';
+        
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.innerHTML = `
+                <div class="chat-sender">${sender}</div>
+                <div class="chat-content">${message}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-
-        function renderTree() {
-            fileTree.innerHTML = '';
-            Object.keys(vfs).sort().forEach(name => {
-                const div = document.createElement('div');
-                div.className = 'tree-item' + (name === currentFile ? ' active' : '');
-                div.textContent = name;
-                div.addEventListener('click', () => openFile(name));
-                fileTree.appendChild(div);
-            });
+        
+        // Utility functions
+        function generateMeetingCode() {
+            return Math.random().toString().substr(2, 6);
         }
-
-        function openFile(name) {
-            currentFile = name;
-            currentFilenameEl.textContent = name;
-            editor.setOption('mode', guessMode(name));
-            editor.setValue(vfs[name] || '');
-            editor.refresh();
+        
+        function generateMeetingLink(meetingCode) {
+            return `${window.location.origin}${window.location.pathname}?meeting=${meetingCode}`;
         }
-
-        function newFile() {
-            const name = prompt('New file name (e.g., style.css):');
-            if (!name) return;
-            if (vfs[name]) { alert('File exists'); return; }
-            vfs[name] = '';
-            renderTree();
-            openFile(name);
+        
+        function copyMeetingInfo() {
+            const link = document.getElementById('meetingLink').textContent;
+            const code = document.getElementById('meetingCode').textContent;
+            const info = `Meeting Link: ${link}\nMeeting Code: ${code}`;
+            navigator.clipboard.writeText(info);
+            alert('Meeting info copied to clipboard!');
         }
-
-        function deleteFile() {
-            if (!currentFile) return;
-            if (!confirm('Delete ' + currentFile + '?')) return;
-            delete vfs[currentFile];
-            const names = Object.keys(vfs);
-            currentFile = names[0] || '';
-            renderTree();
-            if (currentFile) openFile(currentFile); else editor.setValue('');
+        
+        function updateParticipantCount() {
+            document.getElementById('participantCount').textContent = `${participants.length} participants`;
         }
-
-        function saveCurrent() {
-            if (!currentFile) return;
-            vfs[currentFile] = editor.getValue();
-            status('Saved ' + currentFile);
-        }
-
-        function status(msg) { statusEl.textContent = msg; setTimeout(() => { statusEl.textContent = ''; }, 3000); }
-
-        async function buildFromPrompt() {
-            const prompt = document.getElementById('promptInput').value.trim();
-            if (!prompt) { status('Enter a prompt'); return; }
-            status('Building...');
-            try {
-                const resp = await fetch(GEMINI_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [
-                            { role: 'user', parts: [{ text: buildInstruction(prompt) }] }
-                        ]
-                    })
-                });
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const data = await resp.json();
-                const candidate = data && data.candidates && data.candidates[0];
-                const parts = candidate && candidate.content && candidate.content.parts;
-                const text = Array.isArray(parts) ? parts.map(p => (p && p.text) ? p.text : '').join('') : '';
-                if (!text) throw new Error('Empty AI response');
-                const files = parseFiles(text);
-                if (Object.keys(files).length === 0) throw new Error('No files parsed');
-                vfs = files;
-                renderTree();
-                if (vfs['index.html']) openFile('index.html'); else openFile(Object.keys(vfs)[0]);
-                status('Build complete');
-            } catch (e) {
-                console.error(e);
-                status('Build failed: ' + e.message);
+        
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
             }
-        }
-
-        function buildInstruction(userPrompt) {
-            return (
-                'Build a small web project from this prompt. Output ONLY multiple fenced code blocks, each representing a file. ' +
-                'For each file use this exact header line as the first line inside the fence: filename: <relative-path>\n' +
-                'Examples:```html\nfilename: index.html\n<!doctype html>...``` and ```css\nfilename: styles.css\n/* css */``` and ```javascript\nfilename: script.js\n// js```\n' +
-                'Do not include explanations. The prompt: \n' + userPrompt
-            );
-        }
-
-        function parseFiles(text) {
-            const out = {};
-            const re = /```([\w+-]*)\n([\s\S]*?)```/g;
-            let m;
-            while ((m = re.exec(text)) !== null) {
-                const code = m[2] || '';
-                const lines = code.split(/\r?\n/);
-                let fname = '';
-                if (lines[0] && /^filename:\s*/i.test(lines[0])) {
-                    fname = lines[0].replace(/^filename:\s*/i, '').trim();
-                    lines.shift();
-                } else if (lines[0] && /file(name)?/i.test(lines[0])) {
-                    fname = lines[0].replace(/^[#/\-\s]*file(name)?[:=\-\s]*/i, '').trim();
-                    lines.shift();
-                }
-                if (!fname) {
-                    // fallback based on language
-                    const lang = (m[1] || '').toLowerCase();
-                    fname = lang === 'css' ? 'styles.css' : lang === 'javascript' || lang === 'js' ? 'script.js' : 'index.html';
-                }
-                out[fname] = lines.join('\n');
-            }
-            return out;
-        }
-
-        function refreshPreview() {
-            // Build inline HTML by inlining css/js references found in index.html
-            const html = vfs['index.html'];
-            if (!html) { status('index.html not found'); return; }
-            let doc = html;
-
-            // inline CSS
-            doc = doc.replace(/<link[^>]+href=["']([^"']+)["'][^>]*>/gi, (m, href) => {
-                const css = vfs[href];
-                return css ? `<style>\n${css}\n</style>` : m;
             });
-            // inline JS
-            doc = doc.replace(/<script[^>]+src=["']([^"']+)["'][^>]*><\/script>/gi, (m, src) => {
-                const js = vfs[src];
-                return js ? `<script>\n${js}\n<\/script>` : m;
-            });
-
-            const blob = new Blob([doc], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            preview.src = url;
-            status('Preview updated');
-        }
-
-        async function downloadZip() {
-            const zip = new JSZip();
-            Object.entries(vfs).forEach(([name, content]) => {
-                zip.file(name, content);
-            });
-            const blob = await zip.generateAsync({ type: 'blob' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'project.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-            status('Downloaded project.zip');
-        }
-
-        // init
-        renderTree();
-        openFile(currentFile);
-        refreshPreview();
-    </script>
-</body>
-</html>
-
-
+        </script>
+    </body>
+    </html>
