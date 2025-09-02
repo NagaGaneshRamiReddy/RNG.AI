@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Workspace</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #0b0b0b; color: #e5e7eb; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        .header { padding: 10px 16px; background: #0b0b0b; border-bottom: 1px solid #151515; display: flex; align-items: center; justify-content: space-between; }
+        .title { font-weight: 700; }
+        .main { flex: 1; display: grid; grid-template-columns: 260px 1fr 380px; gap: 10px; padding: 10px; min-height: 0; }
+        .panel { background: #0f172a; border: 1px solid #111827; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+        .panel-header { padding: 10px 12px; border-bottom: 1px solid #111827; font-weight: 600; color: #e5e7eb; }
+        .panel-body { padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+        /* File tree */
+        .tree { padding: 10px; overflow-y: auto; flex: 1; }
+        .tree-item { padding: 6px 8px; border: 1px solid #1f2937; border-radius: 8px; margin-bottom: 6px; cursor: pointer; background: #0b1220; color: #e5e7eb; }
+        .tree-item.active { border-color: #2563eb; background: #0c1a34; }
+        .tree-actions { display: flex; gap: 6px; padding: 10px; border-top: 1px solid #111827; }
+        .btn { background: #1f2937; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+        .btn:hover { background: #243144; }
+        .btn.primary { background: #2563eb; border-color: #1f3f8a; color: #fff; }
+        .btn.primary:hover { background: #1d4ed8; }
+
+        /* Editor */
+        .editor-wrap { position: relative; display: flex; flex-direction: column; min-height: 0; }
+        .editor-toolbar { padding: 8px; border-bottom: 1px solid #111827; display: flex; gap: 8px; }
+        .filename { color: #cbd5e1; font-size: 0.9rem; }
+        .cm-s-neo.CodeMirror, .cm-s-darcula.CodeMirror { height: calc(100vh - 160px); }
+
+        /* Preview */
+        .preview-iframe { width: 100%; height: calc(100vh - 120px); border: 0; background: white; }
+
+        /* Prompt */
+        .prompt-area { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .prompt-input { width: 100%; height: 180px; background: #0b1220; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 10px; resize: vertical; }
+        .prompt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .status { color: #9ca3af; padding: 6px 10px; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Project Workspace</div>
+        <div>
+            <button class="btn" onclick="toggleTheme()">Toggle Editor Theme</button>
+        </div>
+    </div>
+    <div class="main">
+        <!-- Files -->
+        <div class="panel">
+            <div class="panel-header">Files</div>
+            <div class="panel-body">
+                <div id="fileTree" class="tree"></div>
+                <div class="tree-actions">
+                    <button class="btn" onclick="newFile()">New File</button>
+                    <button class="btn" onclick="deleteFile()">Delete</button>
+                    <button class="btn" onclick="saveCurrent()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor + Preview -->
+        <div class="panel">
+            <div class="panel-header">Editor & Preview</div>
+            <div class="panel-body editor-wrap">
+                <div class="editor-toolbar">
+                    <span class="filename" id="currentFilename">No file</span>
+                </div>
+                <textarea id="editor"></textarea>
+                <iframe id="preview" class="preview-iframe"></iframe>
+            </div>
+        </div>
+
+        <!-- Prompt Build -->
+        <div class="panel">
+            <div class="panel-header">Build from Prompt</div>
+            <div class="panel-body">
+                <div class="prompt-area">
+                    <textarea id="promptInput" class="prompt-input" placeholder="Describe the project you want to build..."></textarea>
+                    <div class="prompt-actions">
+                        <button class="btn primary" onclick="buildFromPrompt()">Build</button>
+                        <button class="btn" onclick="refreshPreview()">View Project</button>
+                        <button class="btn" onclick="downloadZip()">Download</button>
+                    </div>
+                    <div id="status" class="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_API_KEY";
+
+        const fileTree = document.getElementById('fileTree');
+        const currentFilenameEl = document.getElementById('currentFilename');
+        const preview = document.getElementById('preview');
+        const statusEl = document.getElementById('status');
+
+        let vfs = {
+            'index.html': '<!doctype html>\n<html><head><meta charset="utf-8"><title>App</title></head><body><h1>Hello</h1></body></html>'
+        };
+        let currentFile = 'index.html';
+        let darkTheme = false;
+
+        const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+            mode: guessMode(currentFile),
+            theme: 'neo',
+            lineNumbers: true,
+            indentUnit: 2,
+            tabSize: 2
+        });
+
+        editor.on('change', () => {
+            if (currentFile) vfs[currentFile] = editor.getValue();
+        });
+
+        function toggleTheme() {
+            darkTheme = !darkTheme;
+            editor.setOption('theme', darkTheme ? 'darcula' : 'neo');
+        }
+
+        function guessMode(name) {
+            const lower = (name || '').toLowerCase();
+            if (lower.endsWith('.html') || lower.endsWith('.xml')) return 'xml';
+            if (lower.endsWith('.css')) return 'css';
+            if (lower.endsWith('.js') || lower.endsWith('.ts')) return 'javascript';
+            return 'javascript';
+        }
+
+        function renderTree() {
+            fileTree.innerHTML = '';
+            Object.keys(vfs).sort().forEach(name => {
+                const div = document.createElement('div');
+                div.className = 'tree-item' + (name === currentFile ? ' active' : '');
+                div.textContent = name;
+                div.addEventListener('click', () => openFile(name));
+                fileTree.appendChild(div);
+            });
+        }
+
+        function openFile(name) {
+            currentFile = name;
+            currentFilenameEl.textContent = name;
+            editor.setOption('mode', guessMode(name));
+            editor.setValue(vfs[name] || '');
+            editor.refresh();
+        }
+
+        function newFile() {
+            const name = prompt('New file name (e.g., style.css):');
+            if (!name) return;
+            if (vfs[name]) { alert('File exists'); return; }
+            vfs[name] = '';
+            renderTree();
+            openFile(name);
+        }
+
+        function deleteFile() {
+            if (!currentFile) return;
+            if (!confirm('Delete ' + currentFile + '?')) return;
+            delete vfs[currentFile];
+            const names = Object.keys(vfs);
+            currentFile = names[0] || '';
+            renderTree();
+            if (currentFile) openFile(currentFile); else editor.setValue('');
+        }
+
+        function saveCurrent() {
+            if (!currentFile) return;
+            vfs[currentFile] = editor.getValue();
+            status('Saved ' + currentFile);
+        }
+
+        function status(msg) { statusEl.textContent = msg; setTimeout(() => { statusEl.textContent = ''; }, 3000); }
+
+        async function buildFromPrompt() {
+            const prompt = document.getElementById('promptInput').value.trim();
+            if (!prompt) { status('Enter a prompt'); return; }
+            status('Building...');
+            try {
+                const resp = await fetch(GEMINI_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [
+                            { role: 'user', parts: [{ text: buildInstruction(prompt) }] }
+                        ]
+                    })
+                });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                const candidate = data && data.candidates && data.candidates[0];
+                const parts = candidate && candidate.content && candidate.content.parts;
+                const text = Array.isArray(parts) ? parts.map(p => (p && p.text) ? p.text : '').join('') : '';
+                if (!text) throw new Error('Empty AI response');
+                const files = parseFiles(text);
+                if (Object.keys(files).length === 0) throw new Error('No files parsed');
+                vfs = files;
+                renderTree();
+                if (vfs['index.html']) openFile('index.html'); else openFile(Object.keys(vfs)[0]);
+                status('Build complete');
+            } catch (e) {
+                console.error(e);
+                status('Build failed: ' + e.message);
+            }
+        }
+
+        function buildInstruction(userPrompt) {
+            return (
+                'Build a small web project from this prompt. Output ONLY multiple fenced code blocks, each representing a file. ' +
+                'For each file use this exact header line as the first line inside the fence: filename: <relative-path>\n' +
+                'Examples:```html\nfilename: index.html\n<!doctype html>...``` and ```css\nfilename: styles.css\n/* css */``` and ```javascript\nfilename: script.js\n// js```\n' +
+                'Do not include explanations. The prompt: \n' + userPrompt
+            );
+        }
+
+        function parseFiles(text) {
+            const out = {};
+            const re = /```([\w+-]*)\n([\s\S]*?)```/g;
+            let m;
+            while ((m = re.exec(text)) !== null) {
+                const code = m[2] || '';
+                const lines = code.split(/\r?\n/);
+                let fname = '';
+                if (lines[0] && /^filename:\s*/i.test(lines[0])) {
+                    fname = lines[0].replace(/^filename:\s*/i, '').trim();
+                    lines.shift();
+                } else if (lines[0] && /file(name)?/i.test(lines[0])) {
+                    fname = lines[0].replace(/^[#/\-\s]*file(name)?[:=\-\s]*/i, '').trim();
+                    lines.shift();
+                }
+                if (!fname) {
+                    // fallback based on language
+                    const lang = (m[1] || '').toLowerCase();
+                    fname = lang === 'css' ? 'styles.css' : lang === 'javascript' || lang === 'js' ? 'script.js' : 'index.html';
+                }
+                out[fname] = lines.join('\n');
+            }
+            return out;
+        }
+
+        function refreshPreview() {
+            // Build inline HTML by inlining css/js references found in index.html
+            const html = vfs['index.html'];
+            if (!html) { status('index.html not found'); return; }
+            let doc = html;
+
+            // inline CSS
+            doc = doc.replace(/<link[^>]+href=["']([^"']+)["'][^>]*>/gi, (m, href) => {
+                const css = vfs[href];
+                return css ? `<style>\n${css}\n</style>` : m;
+            });
+            // inline JS
+            doc = doc.replace(/<script[^>]+src=["']([^"']+)["'][^>]*><\/script>/gi, (m, src) => {
+                const js = vfs[src];
+                return js ? `<script>\n${js}\n<\/script>` : m;
+            });
+
+            const blob = new Blob([doc], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            preview.src = url;
+            status('Preview updated');
+        }
+
+        async function downloadZip() {
+            const zip = new JSZip();
+            Object.entries(vfs).forEach(([name, content]) => {
+                zip.file(name, content);
+            });
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'project.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+            status('Downloaded project.zip');
+        }
+
+        // init
+        renderTree();
+        openFile(currentFile);
+        refreshPreview();
+    </script>
+</body>
+</html>
+
+
